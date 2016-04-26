@@ -12,6 +12,15 @@ type SimulationState = {
     texture: Texture2D
 }
 
+
+let update dt state =
+    {
+        state with 
+            trafficlights = List.map(TrafficLight.update dt) state.trafficlights
+    }
+
+
+
 let draw (spritebatch: SpriteBatch) (state: SimulationState) =
     state.trafficlights |>
         List.iter(fun light -> TrafficLight.draw spritebatch state.texture light)

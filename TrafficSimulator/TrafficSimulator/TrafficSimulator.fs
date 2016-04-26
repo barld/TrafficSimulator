@@ -23,8 +23,8 @@ type TrafficSimulator() as this =
         do spritebatch <- new SpriteBatch(this.GraphicsDevice)
         let plainTexture = new Texture2D(this.GraphicsDevice, 1, 1)
         plainTexture.SetData([|Color.White|])
-        state <- {
-            trafficlights = [{status = Green; position = new Vector2(200.f, 200.f)}]; 
+        do state <- {
+            trafficlights = [{status = Green(9.f); position = new Vector2(400.f, 200.f)}]; 
             vehicles = [{position = new Vector2(50.f, 200.f); velocity = new Vector2(1.f, 1.f); acceleration = new Vector2(2.f, 2.f)}];
             texture = plainTexture
         }
@@ -32,7 +32,8 @@ type TrafficSimulator() as this =
 
 
     override this.Update(gameTime) =
-        let deltaTime = gameTime.ElapsedGameTime.TotalSeconds |> float32
+        let dt = gameTime.ElapsedGameTime.TotalSeconds |> float32
+        do state <- SimulationState.update dt state 
         ()
 
   
