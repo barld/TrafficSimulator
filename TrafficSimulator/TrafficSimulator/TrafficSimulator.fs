@@ -28,10 +28,10 @@ type TrafficSimulator() as this =
         plainTexture.SetData([|Color.White|])
         do state <- {
             trafficlights = [
-                {status = Green(6.f); position = new Vector2(320.f, 226.f)}
-                {status = Green(6.f); position = new Vector2(486.f, 380.f)}
-                {status = Red(11.f); position = new Vector2(306.f, 386.f)}
-                {status = Red(11.f); position = new Vector2(496.f, 236.f)}
+                {status = Green(6.f); position = new Vector2(375.f, 230.f)}
+                {status = Green(6.f); position = new Vector2(425.f, 370.f)}
+                {status = Red(11.f); position = new Vector2(470.f, 275.f)}
+                {status = Red(11.f); position = new Vector2(330.f, 325.f)}
             ]; 
             vehicles = [vehicle.TopVehicle];
             texture = plainTexture

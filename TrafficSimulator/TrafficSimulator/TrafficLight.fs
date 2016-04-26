@@ -37,5 +37,5 @@ let draw (spritebatch: SpriteBatch) (texture: Texture2D) (light: trafficLight) =
         | Orange(_) -> Color.Orange
         | Red(_) -> Color.Red
 
-    spritebatch.Draw(texture, new Rectangle(light.position.X - 16.f |> int, light.position.Y - 16.f |> int, 32, 32), color)
+    spritebatch.Draw(texture, new Rectangle(light.position.X - 8.f |> int, light.position.Y - 8.f |> int, 16, 16), color)
     ()

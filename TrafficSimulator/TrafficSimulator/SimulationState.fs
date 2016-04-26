@@ -19,7 +19,7 @@ let update dt state =
     let cooldown, vehicle =
         match state.vehicleSpawnCooldown with
         | cooldown when cooldown > 0.f -> state.vehicleSpawnCooldown - dt, []
-        | cooldown when cooldown <= 0.f-> 2.f, [vehicle.TopVehicle]
+        | cooldown when cooldown <= 0.f-> 2.f, [vehicle.TopVehicle; vehicle.RightVehicle; vehicle.BottomVehicle; vehicle.LeftVehicle]
     {
         state with 
             trafficlights = List.map(TrafficLight.update dt) state.trafficlights
@@ -37,8 +37,7 @@ let update dt state =
 
 let draw (spritebatch: SpriteBatch) (state: SimulationState) =
     spritebatch.Draw(state.background, Vector2.Zero, Color.White)
-    state.trafficlights |>
-        List.iter(fun light -> TrafficLight.draw spritebatch state.texture light)
     state.vehicles |>
         List.iter(fun vehicle -> Vehicle.draw spritebatch state.texture vehicle)
-    ()
+    state.trafficlights |>
+        List.iter(fun light -> TrafficLight.draw spritebatch state.texture light)
