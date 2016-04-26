@@ -15,12 +15,12 @@ type trafficLight = {status: status; position: Vector2}
 
 
 
-let draw (spritebatch: SpriteBatch) (texture: Texture2D) (trafficlight: trafficLight) = 
+let draw (spritebatch: SpriteBatch) (texture: Texture2D) (light: trafficLight) = 
     let color =
-        match trafficlight.status with
+        match light.status with
         | Green -> Color.Green
         | Orange -> Color.Orange
         | Red -> Color.Red
 
-    spritebatch.Draw(texture, new Rectangle(vehicle.position.X - 16.f |> int, vehicle.position.Y - 16.f |> int, 32, 32), color)
+    spritebatch.Draw(texture, new Rectangle(light.position.X - 16.f |> int, light.position.Y - 16.f |> int, 32, 32), color)
     ()

@@ -34,6 +34,7 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="TrafficLight.fs" />
+    <Compile Include="Vehicle.fs" />
     <Compile Include="SimulationState.fs" />
     <Compile Include="TrafficSimulator.fs" />
     <Compile Include="Program.fs" />
@@ -41,7 +42,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="packages.config" />
-    <Compile Include="Vehicle.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="MonoGame.Framework">
