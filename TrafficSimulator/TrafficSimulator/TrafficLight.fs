@@ -18,14 +18,14 @@ let update dt light =
     match light.status with
     | Green(t) -> 
         if t < 0.f then
-            {light with status = Orange(2.f)} 
+            {light with status = Orange(3.f)} 
         else 
             {light with status = Green(t-dt)}
     | Orange(t) when t < 0.f -> {light with status = Red(11.f)}
     | Orange(t) -> {light with status = Orange(t-dt)}
     | Red(t) -> 
         if t < 0.f then
-            {light with status = Green(9.f)} 
+            {light with status = Green(6.f)} 
         else 
             {light with status = Red(t-dt)}
    

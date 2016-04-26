@@ -10,6 +10,7 @@ type SimulationState = {
     trafficlights : List<trafficLight>
     vehicles : List<vehicle>
     texture: Texture2D
+    background: Texture2D
 }
 
 
@@ -22,6 +23,7 @@ let update dt state =
 
 
 let draw (spritebatch: SpriteBatch) (state: SimulationState) =
+    spritebatch.Draw(state.background, Vector2.Zero, Color.White)
     state.trafficlights |>
         List.iter(fun light -> TrafficLight.draw spritebatch state.texture light)
     state.vehicles |>
