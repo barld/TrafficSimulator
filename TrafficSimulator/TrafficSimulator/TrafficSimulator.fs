@@ -4,9 +4,7 @@ open System
 open Microsoft.Xna.Framework
 open Microsoft.Xna.Framework.Graphics
 open Microsoft.Xna.Framework.Input
-open TrafficLight
-open Vehicle
-open SimulationState
+open Entities
 
 type TrafficSimulator() as this =
     inherit Game()
@@ -27,16 +25,17 @@ type TrafficSimulator() as this =
         let background = this.Content.Load<Texture2D> "background.jpg"
         plainTexture.SetData([|Color.White|])
         do state <- {
-            trafficlights = [
-                {status = Green(6.f); position = new Vector2(375.f, 230.f)}
-                {status = Green(6.f); position = new Vector2(425.f, 370.f)}
-                {status = Red(11.f); position = new Vector2(470.f, 275.f)}
-                {status = Red(11.f); position = new Vector2(330.f, 325.f)}
-            ]; 
-            vehicles = [vehicle.TopVehicle];
+            trafficlights = 
+                [
+                    {status = Green(6.f); position = new Vector2(375.f, 230.f)} //top
+                    {status = Green(6.f); position = new Vector2(425.f, 370.f)} //bottom
+                    {status = Red(11.f); position = new Vector2(470.f, 275.f)}
+                    {status = Red(11.f); position = new Vector2(330.f, 325.f)}
+                ]
+            vehicles = []
             texture = plainTexture
             background = background
-            vehicleSpawnCooldown = 2.f
+            vehicleSpawnCooldown = 0.f
         }
         ()
 

@@ -2,21 +2,28 @@
 open System
 open Microsoft.Xna.Framework
 open Microsoft.Xna.Framework.Graphics
-
-type vehicle = 
-    {
-        position : Vector2
-        velocity : Vector2
-        acceleration : Vector2
-    } with
-      static member TopVehicle = {position = new Vector2(375.f, -16.f); velocity = Vector2.Zero; acceleration = new Vector2(0.f, 40.f)}
-      static member RightVehicle = {position = new Vector2(816.f, 275.f); velocity = Vector2.Zero; acceleration = new Vector2(-38.f, 0.f)}
-      static member BottomVehicle = {position = new Vector2(425.f, 616.f); velocity = Vector2.Zero; acceleration = new Vector2(0.f, -40.f)}
-      static member LeftVehicle = {position = new Vector2(-16.f, 325.f); velocity = Vector2.Zero; acceleration = new Vector2(38.f, 0.f)}
+open Entities
 
 
-let update (dt:float32) vehicle = 
-    let v = vehicle.velocity + vehicle.acceleration * dt
+
+let isInPrecisionRange (precision:float32) (v1:float32) (v2:float32) =
+    abs (v1 - v2) < precision
+
+
+let update (dt:float32) (state: SimulationState) vehicle = 
+    let d = atan2 vehicle.frontDirection.Y  vehicle.frontDirection.X
+    let light = state.trafficlights |> List.tryFind (fun light -> 
+        let dTarget = atan2 (light.position.Y - vehicle.position.Y)  (light.position.X - vehicle.position.X) 
+        let b1 = Vector2.Distance(light.position, vehicle.position) < 150.f 
+        let b2 = isInPrecisionRange 0.05f d dTarget 
+        let b3 = b1 && b2
+        b3)
+    
+    match light with
+    | Some(l) -> printfn "%A" l.status
+    | _ -> printfn "no light"
+
+    let v = vehicle.velocity + vehicle.frontDirection * vehicle.acceleration * dt
     let pos = vehicle.position + v * dt
     {
         vehicle with

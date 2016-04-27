@@ -3,15 +3,10 @@
 open System
 open Microsoft.Xna.Framework
 open Microsoft.Xna.Framework.Graphics
+open Entities
 
 
-type status = 
-        | Green of float32
-        | Orange of float32
-        | Red of float32
 
-     
-type trafficLight = {status: status; position: Vector2}
 
 
 let update dt light =
