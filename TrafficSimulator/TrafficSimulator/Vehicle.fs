@@ -14,7 +14,7 @@ let update (dt:float32) (state: SimulationState) vehicle =
     let d = atan2 vehicle.frontDirection.Y  vehicle.frontDirection.X
     let light = state.trafficlights |> List.tryFind (fun light -> 
         let dTarget = atan2 (light.position.Y - vehicle.position.Y)  (light.position.X - vehicle.position.X) 
-        let b1 = Vector2.Distance(light.position, vehicle.position) < 150.f 
+        let b1 = Vector2.Distance(light.position, vehicle.position) < 100.f 
         let b2 = isInPrecisionRange 0.05f d dTarget 
         let b3 = b1 && b2
         b3)
@@ -24,15 +24,15 @@ let update (dt:float32) (state: SimulationState) vehicle =
         | Some(l) -> 
             let distanceToLight = Vector2.Distance(l.position, vehicle.position)
             match l.status with
-            | Green(_) -> 5.f//drive
-            | Orange(_) when distanceToLight < 40.f -> 6.f//drive
-            | Orange(_) -> -10.f //stop
-            | Red(_) when distanceToLight < 10.f -> 7.f//drive
-            | Red(_) -> -12.f //stop
-        | _ -> 5.f
+            | Green(_) -> 9.f//drive
+            | Orange(_) when distanceToLight < 40.f && vehicle.velocity > 30.f -> 11.f//drive
+            | Orange(_) -> -(vehicle.velocity**2.f)/ (distanceToLight - 20.f)
+            | Red(_) when distanceToLight < 10.f -> 11.f//drive
+            | Red(_) -> -(vehicle.velocity**2.f)/ (distanceToLight - 20.f) //stop
+        | _ -> 9.f
     let v = 
         match acc with
-        | acc when acc < 0.f && vehicle.velocity < 0.f -> 0.f
+        | acc when acc < 0.f && vehicle.velocity < 0.1f -> 0.f
         | _ -> vehicle.velocity + acc * dt
 
     let pos = vehicle.position + vehicle.frontDirection * v * dt
