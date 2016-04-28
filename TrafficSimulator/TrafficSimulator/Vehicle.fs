@@ -18,18 +18,33 @@ let update (dt:float32) (state: SimulationState) vehicle =
         let b2 = isInPrecisionRange 0.05f d dTarget 
         let b3 = b1 && b2
         b3)
+
+    let potentialVehicle = state.vehicles |> List.tryFind (fun potentialVehicle ->
+        let dTarget = atan2 (potentialVehicle.position.Y - vehicle.position.Y)  (potentialVehicle.position.X - vehicle.position.X) 
+        let b1 = Vector2.Distance(potentialVehicle.position, vehicle.position) < 100.f 
+        let b2 = isInPrecisionRange 0.05f d dTarget 
+        let b3 = potentialVehicle <> vehicle
+        let b4 = b1 && b2 && b3
+        b4)
     
     let acc =
-        match light with
-        | Some(l) -> 
-            let distanceToLight = Vector2.Distance(l.position, vehicle.position)
-            match l.status with
-            | Green(_) -> 9.f//drive
-            | Orange(_) when distanceToLight < 40.f && vehicle.velocity > 30.f -> 11.f//drive
-            | Orange(_) -> -(vehicle.velocity**2.f)/ (distanceToLight - 20.f)
-            | Red(_) when distanceToLight < 10.f -> 11.f//drive
-            | Red(_) -> -(vehicle.velocity**2.f)/ (distanceToLight - 20.f) //stop
-        | _ -> 9.f
+        match potentialVehicle with
+        | Some(vehc) when vehc.velocity < vehicle.velocity -> 
+            let distanceToOtherCar = Vector2.Distance(vehicle.position, vehc.position)
+            (vehc.velocity**2.f - vehicle.velocity**2.f)/(2.f * (distanceToOtherCar - 50.f))
+        | _ ->
+            match light with
+            | Some(l) -> 
+                let distanceToLight = Vector2.Distance(l.position, vehicle.position)
+                match l.status with
+                | Green(_) -> 9.f//drive
+                | Orange(_) when distanceToLight < 40.f && vehicle.velocity > 30.f -> 11.f//drive
+                | Orange(_) -> -(vehicle.velocity**2.f)/ (distanceToLight - 20.f)
+                | Red(_) when distanceToLight < 10.f -> 11.f//drive
+                | Red(_) -> -(vehicle.velocity**2.f)/ (distanceToLight - 20.f) //stop
+            | None -> 9.f
+
+    
     let v = 
         match acc with
         | acc when acc < 0.f && vehicle.velocity < 0.1f -> 0.f
