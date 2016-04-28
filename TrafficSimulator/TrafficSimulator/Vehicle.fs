@@ -19,19 +19,26 @@ let update (dt:float32) (state: SimulationState) vehicle =
         let b3 = b1 && b2
         b3)
 
-    let potentialVehicle = state.vehicles |> List.tryFind (fun potentialVehicle ->
-        let dTarget = atan2 (potentialVehicle.position.Y - vehicle.position.Y)  (potentialVehicle.position.X - vehicle.position.X) 
-        let b1 = Vector2.Distance(potentialVehicle.position, vehicle.position) < 100.f 
-        let b2 = isInPrecisionRange 0.05f d dTarget 
-        let b3 = potentialVehicle <> vehicle
-        let b4 = b1 && b2 && b3
-        b4)
+    let potentialVehicle = 
+        state.vehicles 
+        |> List.filter ( fun potentialVehicle -> Vector2.Distance(potentialVehicle.position, vehicle.position) < 100.f )
+        |> List.sortBy ( fun potentialVehicle -> Vector2.Distance(potentialVehicle.position, vehicle.position))
+        |> List.tryFind (fun potentialVehicle ->
+            let dTarget = atan2 (potentialVehicle.position.Y - vehicle.position.Y)  (potentialVehicle.position.X - vehicle.position.X) 
+            let b1 = Vector2.Distance(potentialVehicle.position, vehicle.position) < 100.f 
+            let b2 = isInPrecisionRange 0.05f d dTarget 
+            let b3 = potentialVehicle <> vehicle
+            let b4 = b1 && b2 && b3
+            b4)
     
     let acc =
         match potentialVehicle with
         | Some(vehc) when vehc.velocity < vehicle.velocity -> 
             let distanceToOtherCar = Vector2.Distance(vehicle.position, vehc.position)
-            (vehc.velocity**2.f - vehicle.velocity**2.f)/(2.f * (distanceToOtherCar - 50.f))
+            if distanceToOtherCar < 50.f then
+                (vehc.velocity**2.f - vehicle.velocity**2.f)/(2.f * (-100.f))
+            else
+                (vehc.velocity**2.f - vehicle.velocity**2.f)/(2.f * (distanceToOtherCar - 50.f))
         | _ ->
             match light with
             | Some(l) -> 
