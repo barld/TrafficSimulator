@@ -26,7 +26,7 @@ let update (dt:float32) (state: SimulationState) vehicle =
         |> List.tryFind (fun potentialVehicle ->
             let dTarget = atan2 (potentialVehicle.position.Y - vehicle.position.Y)  (potentialVehicle.position.X - vehicle.position.X) 
             let b1 = Vector2.Distance(potentialVehicle.position, vehicle.position) < 100.f 
-            let b2 = isInPrecisionRange 0.05f d dTarget 
+            let b2 = isInPrecisionRange 0.1f d dTarget 
             let b3 = potentialVehicle <> vehicle
             let b4 = b1 && b2 && b3
             b4)

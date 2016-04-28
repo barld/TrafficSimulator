@@ -14,8 +14,8 @@ type TrafficSimulator() as this =
     let mutable state = Unchecked.defaultof<SimulationState>
 
     override this.Initialize() = 
-        graphics.PreferredBackBufferHeight <- 600
-        graphics.PreferredBackBufferWidth <- 800
+        graphics.PreferredBackBufferHeight <- 1000
+        graphics.PreferredBackBufferWidth <- 1600
         do base.Initialize()
    
 
@@ -27,10 +27,26 @@ type TrafficSimulator() as this =
         do state <- {
             trafficlights = 
                 [
-                    {status = Green(6.f); position = new Vector2(375.f, 230.f)} //top
-                    {status = Green(6.f); position = new Vector2(425.f, 370.f)} //bottom
+                     //topLeft
+                    {status = Green(6.f); position = new Vector2(375.f, 230.f)}
+                    {status = Green(6.f); position = new Vector2(425.f, 370.f)} 
                     {status = Red(11.f); position = new Vector2(470.f, 275.f)}
                     {status = Red(11.f); position = new Vector2(330.f, 325.f)}
+                    //topRight
+                    {status = Green(6.f); position = new Vector2(1175.f, 230.f)}
+                    {status = Green(6.f); position = new Vector2(1225.f, 370.f)} 
+                    {status = Red(11.f); position = new Vector2(1270.f, 275.f)}
+                    {status = Red(11.f); position = new Vector2(1130.f, 325.f)}
+                    //BottomLeft
+                    {status = Green(6.f); position = new Vector2(375.f, 695.f)}
+                    {status = Green(6.f); position = new Vector2(425.f, 835.f)} 
+                    {status = Red(11.f); position = new Vector2(470.f, 745.f)}
+                    {status = Red(11.f); position = new Vector2(330.f, 790.f)}
+                    //BotoomRight
+                    {status = Green(6.f); position = new Vector2(1175.f, 695.f)}
+                    {status = Green(6.f); position = new Vector2(1225.f, 835.f)} 
+                    {status = Red(11.f); position = new Vector2(1270.f, 745.f)}
+                    {status = Red(11.f); position = new Vector2(1130.f, 790.f)}
                 ]
             vehicles = []
             texture = plainTexture
