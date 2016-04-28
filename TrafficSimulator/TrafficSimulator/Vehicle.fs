@@ -3,6 +3,7 @@ open System
 open Microsoft.Xna.Framework
 open Microsoft.Xna.Framework.Graphics
 open Entities
+open Coroutine
 
 
 
@@ -27,7 +28,7 @@ let update (dt:float32) (state: SimulationState) vehicle =
             let dTarget = atan2 (potentialVehicle.position.Y - vehicle.position.Y)  (potentialVehicle.position.X - vehicle.position.X) 
             let b1 = Vector2.Distance(potentialVehicle.position, vehicle.position) < 100.f 
             let b2 = isInPrecisionRange 0.1f d dTarget 
-            let b3 = potentialVehicle <> vehicle
+            let b3 = potentialVehicle.position <> vehicle.position
             let b4 = b1 && b2 && b3
             b4)
     
@@ -66,7 +67,36 @@ let update (dt:float32) (state: SimulationState) vehicle =
             acceleration = acc
     }
 
+
 let draw (spritebatch: SpriteBatch) (texture: Texture2D) (vehicle: vehicle) = 
     spritebatch.Draw(texture, new Rectangle(vehicle.position.X - 16.f |> int, vehicle.position.Y - 16.f |> int, 32, 32), Color.HotPink)
     ()
 
+//-------------------------------------------------------------------------------------------------------------------------
+
+let updateVehicle veh =
+        fun (state,_) dt ->
+            Done((),(state,veh))
+
+let rec getDefaulBehaviour () =
+    co{
+        let! (state: SimulationState), (currentVehicle:vehicle) = getState_
+        let! dt = getDeltaTime_
+        do! updateVehicle (update dt state currentVehicle)
+        do! yield_
+        return! getDefaulBehaviour()
+    }
+
+let rec getBehaviour () =
+    
+    co{
+        let! (state: SimulationState), (currentVehicle:vehicle) = getState_
+        let! dt = getDeltaTime_
+        do! wait_ 0.5f
+        let v = currentVehicle.velocity + currentVehicle.acceleration * 0.5f
+        let pos = currentVehicle.position + currentVehicle.frontDirection * v * 0.5f
+        let newVehicle = {currentVehicle with velocity = v; position = pos }
+        do! updateVehicle newVehicle
+        do! yield_
+        return! getBehaviour()
+    }

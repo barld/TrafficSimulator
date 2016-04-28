@@ -3,6 +3,7 @@
 open Microsoft.Xna.Framework
 open Microsoft.Xna.Framework.Graphics
 open Microsoft.Xna.Framework.Input
+open Coroutine
 
 type status = 
         | Green of float32
@@ -17,21 +18,24 @@ type vehicle =
         position : Vector2
         velocity : float32
         frontDirection : Vector2
-        acceleration: float32
+        acceleration : float32
+        behaviour : Coroutine<SimulationState*vehicle,Unit>
     } with
-      static member TopLeftVehicle = {position = new Vector2(375.f, -16.f); velocity = 0.f; frontDirection = new Vector2(0.f, 1.f); acceleration = 5.f}
-      static member TopRightVehicle = {position = new Vector2(1175.f, -16.f); velocity = 0.f; frontDirection = new Vector2(0.f, 1.f); acceleration = 5.f}
+        static member Zero = {position=Vector2.Zero;velocity = 0.f;frontDirection=Vector2.Zero;acceleration=5.f;behaviour=(fun s dt -> Done((),s))}
 
-      static member MiddleRightTopVehicle = {position = new Vector2(1616.f, 275.f); velocity = 0.f; frontDirection = new Vector2(-1.f, 0.f); acceleration = 5.f}
-      static member MiddleRightBottomVehicle = {position = new Vector2(1616.f, 745.f); velocity = 0.f; frontDirection = new Vector2(-1.f, 0.f); acceleration = 5.f}
+        static member TopLeftVehicle = {vehicle.Zero with position = new Vector2(375.f, -16.f); frontDirection = new Vector2(0.f, 1.f)}
+        static member TopRightVehicle = {vehicle.Zero with position = new Vector2(1175.f, -16.f); frontDirection = new Vector2(0.f, 1.f)}
 
-      static member MiddleLeftTopVehicle = {position = new Vector2(-16.f, 325.f); velocity = 0.f; frontDirection = new Vector2(1.f, 0.f); acceleration = 5.f}
-      static member MiddleLeftBottomVehicle = {position = new Vector2(-16.f, 790.f); velocity = 0.f; frontDirection = new Vector2(1.f, 0.f); acceleration = 5.f}
+        static member MiddleRightTopVehicle = {vehicle.Zero with position = new Vector2(1616.f, 275.f); frontDirection = new Vector2(-1.f, 0.f)}
+        static member MiddleRightBottomVehicle = {vehicle.Zero with position = new Vector2(1616.f, 745.f); frontDirection = new Vector2(-1.f, 0.f)}
 
-      static member BottomLeftVehicle = {position = new Vector2(425.f, 1016.f); velocity = 0.f; frontDirection = new Vector2(0.f, -1.f); acceleration = 5.f}
-      static member BottomRightVehicle = {position = new Vector2(1225.f, 1016.f); velocity = 0.f; frontDirection = new Vector2(0.f, -1.f); acceleration = 5.f}
+        static member MiddleLeftTopVehicle = {vehicle.Zero with position = new Vector2(-16.f, 325.f); frontDirection = new Vector2(1.f, 0.f)}
+        static member MiddleLeftBottomVehicle = {vehicle.Zero with position = new Vector2(-16.f, 790.f); frontDirection = new Vector2(1.f, 0.f)}
 
-type SimulationState = {
+        static member BottomLeftVehicle = {vehicle.Zero with position = new Vector2(425.f, 1016.f); frontDirection = new Vector2(0.f, -1.f)}
+        static member BottomRightVehicle = {vehicle.Zero with position = new Vector2(1225.f, 1016.f); frontDirection = new Vector2(0.f, -1.f)}
+and
+    SimulationState = {
     trafficlights : List<trafficLight>
     vehicles : List<vehicle>
     texture: Texture2D
