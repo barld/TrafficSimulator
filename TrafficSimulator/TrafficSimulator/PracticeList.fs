@@ -15,3 +15,11 @@
     let rec iter: ('a -> Unit) -> list<'a> -> Unit =
         fun f list ->
             failwith "not implemented"
+
+    let rec zip: list<'a> -> list<'b> -> list<'a*'b> =
+        fun l1 l2 ->
+            failwith "not implemented"
+
+    let rec unZip: list<'a*'b> -> list<'a> * list<'b> =
+        fun l ->
+            failwith "not implemented"
