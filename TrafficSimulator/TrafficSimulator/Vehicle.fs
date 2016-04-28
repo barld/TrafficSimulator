@@ -19,18 +19,32 @@ let update (dt:float32) (state: SimulationState) vehicle =
         let b3 = b1 && b2
         b3)
     
-    match light with
-    | Some(l) -> printfn "%A" l.status
-    | _ -> printfn "no light"
+    let acc =
+        match light with
+        | Some(l) -> 
+            let distanceToLight = Vector2.Distance(l.position, vehicle.position)
+            match l.status with
+            | Green(_) -> 5.f//drive
+            | Orange(_) when distanceToLight < 40.f -> 6.f//drive
+            | Orange(_) -> -10.f //stop
+            | Red(_) when distanceToLight < 10.f -> 7.f//drive
+            | Red(_) -> -12.f //stop
+        | _ -> 5.f
+    let v = 
+        match acc with
+        | acc when acc < 0.f && vehicle.velocity < 0.f -> 0.f
+        | _ -> vehicle.velocity + acc * dt
 
-    let v = vehicle.velocity + vehicle.frontDirection * vehicle.acceleration * dt
-    let pos = vehicle.position + v * dt
+    let pos = vehicle.position + vehicle.frontDirection * v * dt
+
     {
         vehicle with
             position = pos
             velocity = v
+            acceleration = acc
     }
 
 let draw (spritebatch: SpriteBatch) (texture: Texture2D) (vehicle: vehicle) = 
     spritebatch.Draw(texture, new Rectangle(vehicle.position.X - 16.f |> int, vehicle.position.Y - 16.f |> int, 32, 32), Color.HotPink)
     ()
+

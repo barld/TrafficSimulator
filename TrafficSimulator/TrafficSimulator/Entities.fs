@@ -15,14 +15,14 @@ type trafficLight = {status: status; position: Vector2}
 type vehicle = 
     {
         position : Vector2
-        velocity : Vector2
+        velocity : float32
         frontDirection : Vector2
         acceleration: float32
     } with
-      static member TopVehicle = {position = new Vector2(375.f, -16.f); velocity = Vector2.Zero; frontDirection = new Vector2(0.f, 1.f); acceleration = 5.f}
-      static member RightVehicle = {position = new Vector2(816.f, 275.f); velocity = Vector2.Zero; frontDirection = new Vector2(-1.f, 0.f); acceleration = 5.f}
-      static member BottomVehicle = {position = new Vector2(425.f, 616.f); velocity = Vector2.Zero; frontDirection = new Vector2(0.f, -1.f); acceleration = 5.f}
-      static member LeftVehicle = {position = new Vector2(-16.f, 325.f); velocity = Vector2.Zero; frontDirection = new Vector2(1.f, 0.f); acceleration = 5.f}
+      static member TopVehicle = {position = new Vector2(375.f, -16.f); velocity = 0.f; frontDirection = new Vector2(0.f, 1.f); acceleration = 5.f}
+      static member RightVehicle = {position = new Vector2(816.f, 275.f); velocity = 0.f; frontDirection = new Vector2(-1.f, 0.f); acceleration = 5.f}
+      static member BottomVehicle = {position = new Vector2(425.f, 616.f); velocity = 0.f; frontDirection = new Vector2(0.f, -1.f); acceleration = 5.f}
+      static member LeftVehicle = {position = new Vector2(-16.f, 325.f); velocity = 0.f; frontDirection = new Vector2(1.f, 0.f); acceleration = 5.f}
 
 type SimulationState = {
     trafficlights : List<trafficLight>
