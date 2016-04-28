@@ -61,6 +61,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="PracticeList.fs" />
     <Compile Include="Entities.fs" />
     <Compile Include="TrafficLight.fs" />
     <Compile Include="Vehicle.fs" />
