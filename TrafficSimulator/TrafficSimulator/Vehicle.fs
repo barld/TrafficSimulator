@@ -32,6 +32,7 @@ let update (dt:float32) (state: SimulationState) vehicle =
             let b4 = b1 && b2 && b3
             b4)
     
+    //http://stackoverflow.com/a/1088194
     let acc =
         match potentialVehicle with
         | Some(vehc) when vehc.velocity < vehicle.velocity -> 
@@ -75,8 +76,14 @@ let draw (spritebatch: SpriteBatch) (texture: Texture2D) (vehicle: vehicle) =
 //-------------------------------------------------------------------------------------------------------------------------
 
 let updateVehicle veh =
-        fun (state,_) dt ->
-            Done((),(state,veh))
+    fun (state,_) dt ->
+        Done((),(state,veh))
+
+let getVehicle () =
+    fun (state, vehicle) _ ->
+        Done(vehicle,(state,vehicle))
+
+
 
 let rec getDefaulBehaviour () =
     co{
@@ -88,15 +95,32 @@ let rec getDefaulBehaviour () =
     }
 
 let rec getBehaviour () =
+    let drive () =
+        co{
+            let! vehicle = getVehicle()
+            let! dt = getDeltaTime_
+            let v = vehicle.velocity + vehicle.acceleration * dt
+            let pos = vehicle.position + vehicle.frontDirection * v * dt
+            let newVehicle = {vehicle with velocity = v; position = pos }
+            do! updateVehicle newVehicle
+            do! yield_
+        }
+
+    let rec driveNTime n =
+        co{            
+            if n < 0.f then
+                return ()
+            else
+                let! dt = getDeltaTime_
+                do! drive()
+                return! driveNTime (n-dt)
+        }
     
     co{
-        let! (state: SimulationState), (currentVehicle:vehicle) = getState_
-        let! dt = getDeltaTime_
-        do! wait_ 0.5f
-        let v = currentVehicle.velocity + currentVehicle.acceleration * 0.5f
-        let pos = currentVehicle.position + currentVehicle.frontDirection * v * 0.5f
-        let newVehicle = {currentVehicle with velocity = v; position = pos }
-        do! updateVehicle newVehicle
+        do! driveNTime 1.f
+        let! vehicle = getVehicle()
+        do! driveNTime 0.15f
+        do! updateVehicle vehicle
         do! yield_
         return! getBehaviour()
     }
