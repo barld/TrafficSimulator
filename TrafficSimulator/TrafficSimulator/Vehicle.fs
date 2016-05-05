@@ -73,15 +73,19 @@ let draw (spritebatch: SpriteBatch) (texture: Texture2D) (vehicle: vehicle) =
     spritebatch.Draw(texture, new Rectangle(vehicle.position.X - 16.f |> int, vehicle.position.Y - 16.f |> int, 32, 32), Color.HotPink)
     ()
 
-//-------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------- coroutines
 
-let updateVehicle veh =
+let updateVehicle (veh:vehicle) =
     fun (state,_) dt ->
         Done((),(state,veh))
 
 let getVehicle () =
-    fun (state, vehicle) _ ->
+    fun (state, (vehicle:vehicle)) _ ->
         Done(vehicle,(state,vehicle))
+
+let getSimulationState () =
+    fun ((state:SimulationState),vehicle) _ ->
+        Done(state,(state,vehicle))
 
 
 
@@ -94,33 +98,105 @@ let rec getDefaulBehaviour () =
         return! getDefaulBehaviour()
     }
 
-let rec getBehaviour () =
-    let drive () =
-        co{
-            let! vehicle = getVehicle()
+let drive () =
+    co{
+        let! vehicle = getVehicle()
+        let! dt = getDeltaTime_
+        let v = 
+            match vehicle.acceleration with
+            | acc when acc < 0.f && vehicle.velocity < 0.1f -> 0.f
+            | acc -> vehicle.velocity + acc * dt
+        let pos = vehicle.position + vehicle.frontDirection * v * dt
+        let newVehicle = {vehicle with velocity = v; position = pos }
+        do! updateVehicle newVehicle
+        do! yield_
+    }
+
+let rec driveNTime n =
+    co{            
+        if n < 0.f then
+            return ()
+        else
             let! dt = getDeltaTime_
-            let v = vehicle.velocity + vehicle.acceleration * dt
-            let pos = vehicle.position + vehicle.frontDirection * v * dt
-            let newVehicle = {vehicle with velocity = v; position = pos }
-            do! updateVehicle newVehicle
-            do! yield_
+            do! drive()
+            return! driveNTime (n-dt)
         }
 
-    let rec driveNTime n =
-        co{            
-            if n < 0.f then
-                return ()
-            else
-                let! dt = getDeltaTime_
-                do! drive()
-                return! driveNTime (n-dt)
-        }
-    
+let tryGetLightForVehicke () =
     co{
-        do! driveNTime 1.f
         let! vehicle = getVehicle()
-        do! driveNTime 0.15f
-        do! updateVehicle vehicle
-        do! yield_
+        let! simState = getSimulationState()
+        let d = atan2 vehicle.frontDirection.Y  vehicle.frontDirection.X
+
+        return simState.trafficlights 
+            |> List.sortBy(fun light -> Vector2.Distance(light.position, vehicle.position))
+            |> List.tryFind (fun light -> 
+                let dTarget = atan2 (light.position.Y - vehicle.position.Y)  (light.position.X - vehicle.position.X) 
+                Vector2.Distance(light.position, vehicle.position) < 100.f && isInPrecisionRange 0.05f d dTarget )
+        }
+
+let TryGetVehicleForVehicle () =
+    co{
+        let! vehicle = getVehicle()
+        let! simState = getSimulationState()
+        let d = atan2 vehicle.frontDirection.Y  vehicle.frontDirection.X
+
+        return
+            simState.vehicles
+            |> List.filter ( fun potentialVehicle -> Vector2.Distance(potentialVehicle.position, vehicle.position) < 100.f )
+            |> List.sortBy ( fun potentialVehicle -> Vector2.Distance(potentialVehicle.position, vehicle.position))
+            |> List.tryFind (fun potentialVehicle ->
+                let dTarget = atan2 (potentialVehicle.position.Y - vehicle.position.Y)  (potentialVehicle.position.X - vehicle.position.X) 
+
+                Vector2.Distance(potentialVehicle.position, vehicle.position) < 100.f
+                && isInPrecisionRange 0.1f d dTarget 
+                && potentialVehicle.position <> vehicle.position)
+    }
+
+let calculateAccForLight (light:trafficLight Option) (maxAcc) =
+    co{
+        match light with
+        | None -> return maxAcc
+        | Some(light) ->
+            let! vehicle = getVehicle()
+            let distanceToLight = Vector2.Distance(vehicle.position, light.position)
+            match light.status with
+            | Green(_) -> return maxAcc
+            | Orange(_) -> return -(vehicle.velocity**2.f)/ (2.f*(distanceToLight - 30.f))
+            | Red(_) -> return -(vehicle.velocity**2.f)/ (2.f*(distanceToLight - 30.f))
+    }
+
+let calculateAccForVehicle (oVehicle: vehicle Option) (maxAcc) =
+    co{
+        let! vehicle = getVehicle()
+        match oVehicle with
+        | Some(vehc) when vehc.velocity < vehicle.velocity -> 
+            let distanceToOtherCar = Vector2.Distance(vehicle.position, vehc.position)
+            let acc =
+                if distanceToOtherCar < 50.f then
+                    (vehc.velocity**2.f - vehicle.velocity**2.f)/(2.f * (-100.f))
+                else
+                    (vehc.velocity**2.f - vehicle.velocity**2.f)/(2.f * (distanceToOtherCar - 50.f))
+            return if acc < maxAcc then acc else maxAcc
+        | _ -> return maxAcc
+    }
+
+let rec getBehaviour () =
+    let maxVelocity = 50.f
+    let maxAcc = 10.f
+
+    co{
+        do! driveNTime 0.5f
+        let! vehicle = getVehicle()
+        
+        let! pvehicle = TryGetVehicleForVehicle()
+        let! plight = tryGetLightForVehicke()
+
+        let! lightAcc = calculateAccForLight plight maxAcc
+        let! vehicleAcc = calculateAccForVehicle pvehicle maxAcc
+             
+            
+
+        do! updateVehicle {vehicle with acceleration=(min lightAcc vehicleAcc)}
         return! getBehaviour()
     }

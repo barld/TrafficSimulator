@@ -21,14 +21,9 @@ type CoroutineBuilder() =
 
 let co = new CoroutineBuilder()
 
-let FunA n =
-    fun s (dt:float32) ->
-        let temp = n * (s |> List.length)
-        Done(temp, temp::s)
-
-let add n =
-    fun s dt ->
-        Done((),n::s)
+let wrapDone_ (x:'a) =
+    fun s _ ->
+        Done(x,s)
 
 let yield_ = fun s dt -> Yield((fun s dt -> Done((), s)), s)
 
@@ -58,17 +53,6 @@ let wait_with_elapsedTime_ (time:float32) =
         }
     _wait_ time
 
-let test =
-    co{
-        let! dt = getDeltaTime_
-        do! add 2
-        let! v1 = FunA 25
-        System.Console.WriteLine("wait 2 seccends")
-        do! wait_ 2.f
-        System.Console.WriteLine("Finished")
-        return 25 + v1
-    }
-
 let costep coroutine state =
     let rec _costep coroutine state (lastTime: System.DateTime) =
         let dateTime = System.DateTime.Now
@@ -83,5 +67,4 @@ let singleStep coroutine state dt=
     | Done(a, newState) ->  (fun s dt -> Done((), s)), newState
     | Yield(c', s') -> c', s' 
 
-//let result, state'  = costep test [23]
 
