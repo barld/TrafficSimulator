@@ -11,15 +11,15 @@ let update dt state =
     let cooldown, vehicle =
         match state.vehicleSpawnCooldown with
         | cooldown when cooldown > 0.f -> state.vehicleSpawnCooldown - dt, []
-        | _ -> 5.5f, {vehicle.TopLeftVehicle with behaviour = Vehicle.getBehaviour() }::
-                      ([vehicle.TopRightVehicle; 
+        | _ -> 10.5f, [vehicle.TopLeftVehicle;
+                      vehicle.TopRightVehicle; 
                       vehicle.MiddleRightTopVehicle; 
                       vehicle.MiddleLeftTopVehicle; 
                       vehicle.BottomLeftVehicle; 
                       vehicle.BottomRightVehicle; 
                       vehicle.MiddleRightBottomVehicle; 
                       vehicle.MiddleLeftBottomVehicle
-                      ] |> List.map (fun v -> {v with behaviour = Vehicle.getDefaulBehaviour()}))
+                      ] |> List.map (fun v -> {v with behaviour = Vehicle.getBehaviour()})
     {
         state with 
             trafficlights = List.map(TrafficLight.update dt) state.trafficlights//List.map(Vehicle.update dt state) state.vehicles 

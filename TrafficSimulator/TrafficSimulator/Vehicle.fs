@@ -143,12 +143,12 @@ let TryGetVehicleForVehicle () =
 
         return
             simState.vehicles
-            |> List.filter ( fun potentialVehicle -> Vector2.Distance(potentialVehicle.position, vehicle.position) < 100.f )
+            |> List.filter ( fun potentialVehicle -> Vector2.Distance(potentialVehicle.position, vehicle.position) < 1000.f )
             |> List.sortBy ( fun potentialVehicle -> Vector2.Distance(potentialVehicle.position, vehicle.position))
             |> List.tryFind (fun potentialVehicle ->
                 let dTarget = atan2 (potentialVehicle.position.Y - vehicle.position.Y)  (potentialVehicle.position.X - vehicle.position.X) 
 
-                Vector2.Distance(potentialVehicle.position, vehicle.position) < 100.f
+                Vector2.Distance(potentialVehicle.position, vehicle.position) < 1000.f
                 && isInPrecisionRange 0.1f d dTarget 
                 && potentialVehicle.position <> vehicle.position)
     }
@@ -181,6 +181,51 @@ let calculateAccForVehicle (oVehicle: vehicle Option) (maxAcc) =
         | _ -> return maxAcc
     }
 
+let getDistanceToFronVehicle () =
+    co{
+        let! vehicle = getVehicle()
+        let! fv = TryGetVehicleForVehicle()
+        match fv with
+        | Some(fv) -> return Some(Vector2.Distance(fv.position, vehicle.position))
+        | None -> return None
+    }
+
+let accelerationForFronDriver (maxAcc:float32) =
+    co{
+        let! distance = getDistanceToFronVehicle ()
+        do! drive() 
+        let! dt = getDeltaTime_
+        let! distance' = getDistanceToFronVehicle ()
+        let velocityDifference =
+            match distance, distance' with
+            | Some(d), Some(d') -> Some((d-d')/dt)
+            | _ , _ -> None
+        let! currentVehicle = getVehicle()
+        let timeDifference =
+            match distance' with
+            | Some(d) -> Some(d/currentVehicle.velocity)
+            | None -> None
+
+        match velocityDifference with
+        | None -> return maxAcc
+        | Some(vd) -> 
+            match distance' with
+            | Some(d) when d < 60.f -> return currentVehicle.acceleration - (600.f*dt)
+            | _ ->
+                if vd < 0.f then 
+                    return maxAcc
+                else
+                    match timeDifference with
+                    | None -> return maxAcc
+                    | Some(td) -> 
+                        match td with
+                        | td when td > 5.f -> return maxAcc
+                        | td when td > 3.f -> return currentVehicle.acceleration - (10.f*dt*vd)
+                        | td when td > 1.5f -> return currentVehicle.acceleration - (40.f*dt*vd)
+                        | td -> return currentVehicle.acceleration - (100.f*dt*vd)
+    }
+
+
 let rec getBehaviour () =
     let maxVelocity = 50.f
     let maxAcc = 10.f
@@ -189,14 +234,14 @@ let rec getBehaviour () =
         do! driveNTime 0.5f
         let! vehicle = getVehicle()
         
-        let! pvehicle = TryGetVehicleForVehicle()
         let! plight = tryGetLightForVehicke()
 
         let! lightAcc = calculateAccForLight plight maxAcc
-        let! vehicleAcc = calculateAccForVehicle pvehicle maxAcc
+
+        let! acc = accelerationForFronDriver lightAcc
              
             
 
-        do! updateVehicle {vehicle with acceleration=(min lightAcc vehicleAcc)}
+        do! updateVehicle {vehicle with acceleration= acc}
         return! getBehaviour()
     }
