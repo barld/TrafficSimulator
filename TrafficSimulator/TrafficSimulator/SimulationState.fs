@@ -11,18 +11,19 @@ let update dt state =
     let cooldown, vehicle =
         match state.vehicleSpawnCooldown with
         | cooldown when cooldown > 0.f -> state.vehicleSpawnCooldown - dt, []
-        | _ -> 10.5f, [vehicle.TopLeftVehicle;
-                      vehicle.TopRightVehicle; 
-                      vehicle.MiddleRightTopVehicle; 
-                      vehicle.MiddleLeftTopVehicle; 
-                      vehicle.BottomLeftVehicle; 
-                      vehicle.BottomRightVehicle; 
-                      vehicle.MiddleRightBottomVehicle; 
-                      vehicle.MiddleLeftBottomVehicle
+        | _ -> 10.5f, [
+                        vehicle.TopLeftVehicle
+                        vehicle.TopRightVehicle
+                        vehicle.MiddleRightTopVehicle
+                        vehicle.MiddleLeftTopVehicle
+                        vehicle.BottomLeftVehicle
+                        vehicle.BottomRightVehicle
+                        vehicle.MiddleRightBottomVehicle
+                        vehicle.MiddleLeftBottomVehicle
                       ] |> List.map (fun v -> {v with behaviour = Vehicle.getBehaviour()})
     {
         state with 
-            trafficlights = List.map(TrafficLight.update dt) state.trafficlights//List.map(Vehicle.update dt state) state.vehicles 
+            trafficlights = List.map(TrafficLight.update dt) state.trafficlights
             vehicles = vehicle @ state.vehicles |> List.map (fun vh -> 
                                                             let b, (_,vehc) = (singleStep vh.behaviour (state,vh) dt) 
                                                             {vehc with behaviour = b}) 
@@ -34,6 +35,11 @@ let update dt state =
                     vehicle.position.X > -50.f
             )
             vehicleSpawnCooldown = cooldown
+    }
+
+let rec stateUpdateBehaviour ()
+    co{
+        
     }
 
 

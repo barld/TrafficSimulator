@@ -68,3 +68,40 @@ let singleStep coroutine state dt=
     | Yield(c', s') -> c', s' 
 
 
+// parallel operator
+let rec (<||) (co1: Coroutine<'a,'s>) (co2: Coroutine<_,'s>) : Coroutine<'a,'s> =
+    fun s dt ->
+        match co1 s dt with
+        | Done(a,s') -> Done(a, s')
+        | Yield(co1', s') ->
+            match co2 s' dt with
+            | Done(a,s'') -> Yield((co1' <|| (fun s dt -> Done(a,s)),s''))
+            | Yield(co2', s'') -> Yield((co1' <|| co2'), s'')
+
+
+let test:Coroutine<Unit,Unit> =
+    co{
+        let c1 = co{
+                printfn "start c1"
+                do! wait_ 8.f
+                printfn "stop c1"
+                return ()
+            }
+        let c2 = co{
+                printfn "start c2"
+                do! wait_ 3.f
+                printfn "stop c2"
+                return ()
+            }
+        let c3 = co{
+                printfn "start c3"
+                do! wait_ 5.f
+                printfn "stop c3"
+                return ()
+            }
+
+        do! (c1 <|| (c2 <|| c3))
+        return ()
+    }
+
+//costep test () |> ignore
