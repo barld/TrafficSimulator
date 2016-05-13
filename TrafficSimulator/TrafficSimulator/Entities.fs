@@ -40,5 +40,5 @@ and
     vehicles : List<vehicle>
     texture: Texture2D
     background: Texture2D
-    vehicleSpawnCooldown: float32
+    behaviour: Coroutine<SimulationState,Unit>
 }

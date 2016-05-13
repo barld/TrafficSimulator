@@ -30,7 +30,9 @@ let yield_ = fun s dt -> Yield((fun s dt -> Done((), s)), s)
 let getState_ = fun s dt -> Done(s,s)
 let getDeltaTime_ = fun s dt -> Done(dt,s)
 
-let rec wait_ (time:float32) =
+let updateState_ s' = fun s dt -> Done((),s')
+
+let rec wait_ (time:float32) : Coroutine<'s,Unit> =
     co{
         let! dt = getDeltaTime_ 
         if (time - dt) < 0.f then
@@ -79,29 +81,23 @@ let rec (<||) (co1: Coroutine<'a,'s>) (co2: Coroutine<_,'s>) : Coroutine<'a,'s> 
             | Yield(co2', s'') -> Yield((co1' <|| co2'), s'')
 
 
+let rec repeat_ (coRepeat: Coroutine<'s,Unit>) : Coroutine<'s,Unit> =
+    co{
+        do! coRepeat
+        do! yield_
+        return! repeat_ coRepeat
+    }
+    
+
 let test:Coroutine<Unit,Unit> =
     co{
-        let c1 = co{
-                printfn "start c1"
-                do! wait_ 8.f
-                printfn "stop c1"
+        let print (x:string) = fun s dt -> Done(System.Console.WriteLine(x),s)
+        return! repeat_ 
+            (co{
+                do! print "hello"
+                do! wait_ 1.f
                 return ()
-            }
-        let c2 = co{
-                printfn "start c2"
-                do! wait_ 3.f
-                printfn "stop c2"
-                return ()
-            }
-        let c3 = co{
-                printfn "start c3"
-                do! wait_ 5.f
-                printfn "stop c3"
-                return ()
-            }
-
-        do! (c1 <|| (c2 <|| c3))
-        return ()
+            })
     }
 
 //costep test () |> ignore

@@ -5,6 +5,7 @@ open Microsoft.Xna.Framework
 open Microsoft.Xna.Framework.Graphics
 open Microsoft.Xna.Framework.Input
 open Entities
+open Coroutine
 
 type TrafficSimulator() as this =
     inherit Game()
@@ -51,14 +52,15 @@ type TrafficSimulator() as this =
             vehicles = []
             texture = plainTexture
             background = background
-            vehicleSpawnCooldown = 0.f
+            behaviour = SimulationState.stateUpdateBehaviour ()
         }
         ()
 
 
     override this.Update(gameTime) =
         let dt = gameTime.ElapsedGameTime.TotalSeconds |> float32
-        do state <- SimulationState.update dt state 
+        let behaviour', state' = singleStep state.behaviour state dt
+        do state <- {state' with behaviour = behaviour'}
         ()
 
   
